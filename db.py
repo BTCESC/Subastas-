@@ -42,6 +42,21 @@ def listar_tablas():
             return [row["table_name"] for row in cur.fetchall()]
 
 
+def obtener_usuario_por_username(username):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, username, nombre_visible, password_hash, activo
+                FROM usuarios
+                WHERE username = %s
+                LIMIT 1;
+                """,
+                (username,),
+            )
+            return cur.fetchone()
+
+
 if __name__ == "__main__":
     init_db()
     tablas = listar_tablas()
