@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio | Archivo de Subastas{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">Archivo privado de arte</p>
+    <h1>Organiza y consulta subastas de cuadros desde una web sencilla.</h1>
+    <p>
+        Guarda obras, fichas de subasta, precios, medidas, autores y casas de subastas
+        para poder consultar todo desde móvil u ordenador.
+    </p>
+
+    <div class="hero-actions">
+        <a class="button" href="{{ url_for('coleccion') }}">Ver colección</a>
+    </div>
+</section>
+{% endblock %}
