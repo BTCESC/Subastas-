@@ -1,28 +1,6 @@
-# Entorno virtual
 .venv/
-venv/
-env/
-
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-
-# Variables de entorno y claves
 .env
-.env.*
-secrets.toml
-
-# Base de datos local
-*.db
-*.sqlite
-*.sqlite3
-
-# Archivos temporales
-.DS_Store
-Thumbs.db
-
-# Subidas locales
+__pycache__/
+*.pyc
 static/uploads/*
 !static/uploads/.gitkeep
