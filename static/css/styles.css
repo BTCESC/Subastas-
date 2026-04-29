@@ -128,3 +128,193 @@ p {
         padding: 56px 0;
     }
 }
+
+.section-actions {
+    margin-top: 24px;
+}
+
+.notice {
+    background: rgba(214, 179, 106, 0.12);
+    border: 1px solid rgba(214, 179, 106, 0.45);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 28px;
+}
+
+.notice h2 {
+    margin-bottom: 8px;
+}
+
+.form-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 56px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-weight: 700;
+    color: var(--text);
+}
+
+input,
+textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: #121212;
+    color: var(--text);
+    font: inherit;
+}
+
+input:focus,
+textarea:focus {
+    outline: 2px solid rgba(214, 179, 106, 0.45);
+    border-color: var(--accent);
+}
+
+textarea {
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+button.button {
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+.button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--line);
+}
+
+@media (max-width: 700px) {
+    .form-card {
+        padding: 22px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.section-actions {
+    margin-top: 24px;
+}
+
+.notice {
+    background: rgba(214, 179, 106, 0.12);
+    border: 1px solid rgba(214, 179, 106, 0.45);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 28px;
+}
+
+.notice h2 {
+    margin-bottom: 8px;
+}
+
+.form-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 56px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-weight: 700;
+    color: var(--text);
+}
+
+input,
+textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: #121212;
+    color: var(--text);
+    font: inherit;
+}
+
+input:focus,
+textarea:focus {
+    outline: 2px solid rgba(214, 179, 106, 0.45);
+    border-color: var(--accent);
+}
+
+textarea {
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+button.button {
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+.button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--line);
+}
+
+@media (max-width: 700px) {
+    .form-card {
+        padding: 22px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}

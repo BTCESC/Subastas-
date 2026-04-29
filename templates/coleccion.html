@@ -11,6 +11,10 @@
 
 <section class="empty-state">
     <h2>Todavía no hay obras añadidas</h2>
-    <p>El siguiente paso será crear el formulario para registrar una nueva obra.</p>
+    <p>El siguiente paso será conectar el formulario con la base de datos.</p>
+
+    <div class="section-actions">
+        <a class="button" href="{{ url_for('nueva_obra') }}">Añadir primera obra</a>
+    </div>
 </section>
 {% endblock %}

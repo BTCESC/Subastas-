@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from pathlib import Path
 import os
 
@@ -19,6 +19,16 @@ def index():
 @app.route("/coleccion")
 def coleccion():
     return render_template("coleccion.html")
+
+
+@app.route("/obras/nueva", methods=["GET", "POST"])
+def nueva_obra():
+    form_data = None
+
+    if request.method == "POST":
+        form_data = request.form
+
+    return render_template("nueva_obra.html", form_data=form_data)
 
 
 if __name__ == "__main__":
