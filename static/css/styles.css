@@ -616,3 +616,17 @@ select:focus {
         width: 100%;
     }
 }
+
+.search-row-with-filter {
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) auto;
+}
+
+.filter-field {
+    margin: 0;
+}
+
+@media (max-width: 800px) {
+    .search-row-with-filter {
+        grid-template-columns: 1fr;
+    }
+}

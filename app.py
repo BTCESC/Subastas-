@@ -145,8 +145,18 @@ def index():
 @app.route("/coleccion")
 def coleccion():
     busqueda = request.args.get("q", "").strip()
-    obras = listar_obras(busqueda)
-    return render_template("coleccion.html", obras=obras, q=busqueda)
+    estado_filtro = request.args.get("estado", "").strip()
+
+    if estado_filtro not in {"publicada", "borrador"}:
+        estado_filtro = ""
+
+    obras = listar_obras(busqueda, estado_filtro)
+    return render_template(
+        "coleccion.html",
+        obras=obras,
+        q=busqueda,
+        estado_filtro=estado_filtro,
+    )
 
 
 @app.route("/obras/<int:obra_id>")

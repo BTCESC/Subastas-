@@ -138,24 +138,36 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
     return obra_id
 
 
-def listar_obras(busqueda=None):
+def listar_obras(busqueda=None, estado=None):
     busqueda = (busqueda or "").strip()
+    estado = (estado or "").strip()
+
+    if estado not in {"publicada", "borrador"}:
+        estado = None
 
     with get_connection() as conn:
         with conn.cursor() as cur:
+            condiciones = []
             parametros = []
 
-            where_sql = ""
-
             if busqueda:
-                where_sql = """
-                WHERE
-                    obras.titulo ILIKE %s
-                    OR autores.nombre_principal ILIKE %s
-                    OR obras.casa_subastas ILIKE %s
-                """
+                condiciones.append("""
+                    (
+                        obras.titulo ILIKE %s
+                        OR autores.nombre_principal ILIKE %s
+                        OR obras.casa_subastas ILIKE %s
+                    )
+                """)
                 patron = f"%{busqueda}%"
                 parametros.extend([patron, patron, patron])
+
+            if estado:
+                condiciones.append("obras.estado = %s")
+                parametros.append(estado)
+
+            where_sql = ""
+            if condiciones:
+                where_sql = "WHERE " + " AND ".join(condiciones)
 
             cur.execute(
                 f"""

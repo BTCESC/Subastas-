@@ -17,7 +17,7 @@
 
 <section class="search-card">
     <form method="get" action="{{ url_for('coleccion') }}">
-        <div class="search-row">
+        <div class="search-row search-row-with-filter">
             <div class="form-group search-field">
                 <label for="q">Buscar en la colección</label>
                 <input
@@ -29,9 +29,18 @@
                 >
             </div>
 
+            <div class="form-group filter-field">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado">
+                    <option value="" {% if not estado_filtro %}selected{% endif %}>Todas</option>
+                    <option value="publicada" {% if estado_filtro == 'publicada' %}selected{% endif %}>Publicadas</option>
+                    <option value="borrador" {% if estado_filtro == 'borrador' %}selected{% endif %}>Borradores</option>
+                </select>
+            </div>
+
             <div class="search-actions">
-                <button class="button" type="submit">Buscar</button>
-                {% if q %}
+                <button class="button" type="submit">Filtrar</button>
+                {% if q or estado_filtro %}
                     <a class="button secondary" href="{{ url_for('coleccion') }}">Limpiar</a>
                 {% endif %}
             </div>
@@ -39,9 +48,9 @@
     </form>
 </section>
 
-{% if q %}
+{% if q or estado_filtro %}
     <p class="results-summary">
-        Resultados para “{{ q }}”: {{ obras|length }}
+        Resultados{% if q %} para “{{ q }}”{% endif %}{% if estado_filtro %} · Estado: {{ estado_filtro }}{% endif %}: {{ obras|length }}
     </p>
 {% endif %}
 
@@ -125,11 +134,11 @@
 </section>
 {% else %}
 <section class="empty-state">
-    {% if q %}
-        <h2>No hay resultados para esa búsqueda</h2>
-        <p>Prueba con otro autor, título o casa de subastas.</p>
+    {% if q or estado_filtro %}
+        <h2>No hay resultados para esos filtros</h2>
+        <p>Prueba con otro autor, título, casa de subastas o estado.</p>
         <div class="section-actions">
-            <a class="button secondary" href="{{ url_for('coleccion') }}">Limpiar búsqueda</a>
+            <a class="button secondary" href="{{ url_for('coleccion') }}">Limpiar filtros</a>
         </div>
     {% else %}
         <h2>Todavía no hay obras añadidas</h2>
