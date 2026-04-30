@@ -79,6 +79,20 @@ def guardar_imagen_subida(archivo, prefijo):
     return nombre_final
 
 
+def borrar_archivo_subido(nombre_archivo):
+    if not nombre_archivo:
+        return
+
+    ruta_archivo = (UPLOAD_FOLDER / nombre_archivo).resolve()
+    carpeta_uploads = UPLOAD_FOLDER.resolve()
+
+    if carpeta_uploads not in ruta_archivo.parents:
+        return
+
+    if ruta_archivo.exists() and ruta_archivo.is_file():
+        ruta_archivo.unlink()
+
+
 def obtener_datos_obra_desde_formulario():
     estado = request.form.get("estado", "publicada")
     if estado not in {"borrador", "publicada"}:
@@ -244,9 +258,11 @@ def editar_obra(obra_id):
 @app.route("/obras/<int:obra_id>/borrar", methods=["POST"])
 @login_required
 def borrar_obra_route(obra_id):
-    borrada = borrar_obra(obra_id)
+    obra_borrada = borrar_obra(obra_id)
 
-    if borrada:
+    if obra_borrada:
+        borrar_archivo_subido(obra_borrada.get("imagen_obra"))
+        borrar_archivo_subido(obra_borrada.get("imagen_ficha"))
         flash("Obra borrada correctamente.")
     else:
         flash("No se encontró la obra solicitada.")

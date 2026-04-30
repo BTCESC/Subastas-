@@ -261,7 +261,7 @@ def borrar_obra(obra_id):
                 """
                 DELETE FROM obras
                 WHERE id = %s
-                RETURNING id;
+                RETURNING id, imagen_obra, imagen_ficha;
                 """,
                 (obra_id,),
             )
@@ -269,7 +269,7 @@ def borrar_obra(obra_id):
 
         conn.commit()
 
-    return obra_borrada is not None
+    return obra_borrada
 
 
 if __name__ == "__main__":
