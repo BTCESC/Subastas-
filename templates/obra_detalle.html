@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{{ obra.titulo }} | Archivo de Subastas{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Ficha de obra</p>
+    <h1>{{ obra.titulo }}</h1>
+    <p>{{ obra.autor }}</p>
+
+    <div class="section-actions">
+        <a class="button secondary" href="{{ url_for('coleccion') }}">Volver a colección</a>
+
+        {% if session.get("usuario_id") %}
+            <a class="button" href="{{ url_for('editar_obra', obra_id=obra.id) }}">Editar obra</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="detail-layout">
+    <article class="detail-main">
+        {% if obra.imagen_obra %}
+            <img class="detail-image" src="{{ url_for('static', filename='uploads/' ~ obra.imagen_obra) }}" alt="Imagen de {{ obra.titulo }}">
+        {% else %}
+            <div class="detail-placeholder">
+                <p>Sin imagen del cuadro</p>
+            </div>
+        {% endif %}
+
+        {% if obra.notas %}
+            <section class="detail-section">
+                <h2>Notas</h2>
+                <p>{{ obra.notas }}</p>
+            </section>
+        {% endif %}
+
+        {% if obra.imagen_ficha %}
+            <section class="detail-section">
+                <h2>Ficha de subasta</h2>
+                <img class="detail-file-image" src="{{ url_for('static', filename='uploads/' ~ obra.imagen_ficha) }}" alt="Ficha de subasta de {{ obra.titulo }}">
+            </section>
+        {% endif %}
+    </article>
+
+    <aside class="detail-panel">
+        <div class="card-topline">
+            <p class="eyebrow">Lote {{ obra.numero_lote or "sin número" }}</p>
+            <span class="status-badge status-{{ obra.estado }}">{{ obra.estado }}</span>
+        </div>
+
+        <dl class="obra-meta detail-meta">
+            <div>
+                <dt>Autor</dt>
+                <dd>{{ obra.autor }}</dd>
+            </div>
+
+            <div>
+                <dt>Título</dt>
+                <dd>{{ obra.titulo }}</dd>
+            </div>
+
+            {% if obra.tecnica %}
+            <div>
+                <dt>Técnica o soporte</dt>
+                <dd>{{ obra.tecnica }}</dd>
+            </div>
+            {% endif %}
+
+            {% if obra.medidas %}
+            <div>
+                <dt>Medidas</dt>
+                <dd>{{ obra.medidas }}</dd>
+            </div>
+            {% endif %}
+
+            {% if obra.casa_subastas %}
+            <div>
+                <dt>Casa de subastas</dt>
+                <dd>{{ obra.casa_subastas }}</dd>
+            </div>
+            {% endif %}
+
+            {% if obra.fecha_subasta %}
+            <div>
+                <dt>Fecha de subasta</dt>
+                <dd>{{ obra.fecha_subasta.strftime('%d/%m/%Y') }}</dd>
+            </div>
+            {% endif %}
+
+            {% if obra.precio_salida is not none %}
+            <div>
+                <dt>Precio de salida</dt>
+                <dd>{{ obra.precio_salida }} €</dd>
+            </div>
+            {% endif %}
+
+            {% if obra.comision_porcentaje is not none %}
+            <div>
+                <dt>Comisión</dt>
+                <dd>{{ obra.comision_porcentaje }} %</dd>
+            </div>
+            {% endif %}
+
+            {% if obra.precio_final is not none %}
+            <div>
+                <dt>Precio final estimado</dt>
+                <dd>{{ obra.precio_final }} €</dd>
+            </div>
+            {% endif %}
+        </dl>
+
+        {% if obra.enlace_original %}
+            <div class="detail-link">
+                <a class="button" href="{{ obra.enlace_original }}" target="_blank" rel="noopener noreferrer">Ver subasta original</a>
+            </div>
+        {% endif %}
+    </aside>
+</section>
+{% endblock %}

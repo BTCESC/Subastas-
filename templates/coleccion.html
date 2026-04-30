@@ -79,15 +79,17 @@
                 {% endif %}
             </dl>
 
-            {% if session.get("usuario_id") %}
-                <div class="card-actions">
+            <div class="card-actions">
+                <a class="button secondary" href="{{ url_for('detalle_obra', obra_id=obra.id) }}">Ver ficha</a>
+
+                {% if session.get("usuario_id") %}
                     <a class="button secondary" href="{{ url_for('editar_obra', obra_id=obra.id) }}">Editar</a>
 
                     <form method="post" action="{{ url_for('borrar_obra_route', obra_id=obra.id) }}" onsubmit="return confirm('¿Seguro que quieres borrar esta obra?');">
                         <button class="button danger" type="submit">Borrar</button>
                     </form>
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
         </article>
     {% endfor %}
 </section>

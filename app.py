@@ -148,6 +148,17 @@ def coleccion():
     return render_template("coleccion.html", obras=obras)
 
 
+@app.route("/obras/<int:obra_id>")
+def detalle_obra(obra_id):
+    obra = obtener_obra_por_id(obra_id)
+
+    if not obra:
+        flash("No se encontró la obra solicitada.")
+        return redirect(url_for("coleccion"))
+
+    return render_template("obra_detalle.html", obra=obra)
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("usuario_id"):
