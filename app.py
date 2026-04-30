@@ -144,8 +144,9 @@ def index():
 
 @app.route("/coleccion")
 def coleccion():
-    obras = listar_obras()
-    return render_template("coleccion.html", obras=obras)
+    busqueda = request.args.get("q", "").strip()
+    obras = listar_obras(busqueda)
+    return render_template("coleccion.html", obras=obras, q=busqueda)
 
 
 @app.route("/obras/<int:obra_id>")

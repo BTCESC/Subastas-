@@ -138,11 +138,27 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
     return obra_id
 
 
-def listar_obras():
+def listar_obras(busqueda=None):
+    busqueda = (busqueda or "").strip()
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
+            parametros = []
+
+            where_sql = ""
+
+            if busqueda:
+                where_sql = """
+                WHERE
+                    obras.titulo ILIKE %s
+                    OR autores.nombre_principal ILIKE %s
+                    OR obras.casa_subastas ILIKE %s
                 """
+                patron = f"%{busqueda}%"
+                parametros.extend([patron, patron, patron])
+
+            cur.execute(
+                f"""
                 SELECT
                     obras.id,
                     obras.titulo,
@@ -161,8 +177,10 @@ def listar_obras():
                     autores.nombre_principal AS autor
                 FROM obras
                 JOIN autores ON autores.id = obras.autor_id
+                {where_sql}
                 ORDER BY obras.creado_en DESC;
-                """
+                """,
+                parametros,
             )
             return cur.fetchall()
 

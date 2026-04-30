@@ -15,6 +15,36 @@
     {% endif %}
 </section>
 
+<section class="search-card">
+    <form method="get" action="{{ url_for('coleccion') }}">
+        <div class="search-row">
+            <div class="form-group search-field">
+                <label for="q">Buscar en la colección</label>
+                <input
+                    type="search"
+                    id="q"
+                    name="q"
+                    placeholder="Autor, título o casa de subastas"
+                    value="{{ q or '' }}"
+                >
+            </div>
+
+            <div class="search-actions">
+                <button class="button" type="submit">Buscar</button>
+                {% if q %}
+                    <a class="button secondary" href="{{ url_for('coleccion') }}">Limpiar</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</section>
+
+{% if q %}
+    <p class="results-summary">
+        Resultados para “{{ q }}”: {{ obras|length }}
+    </p>
+{% endif %}
+
 {% if obras %}
 <section class="cards-grid">
     {% for obra in obras %}
@@ -95,13 +125,21 @@
 </section>
 {% else %}
 <section class="empty-state">
-    <h2>Todavía no hay obras añadidas</h2>
-    <p>Cuando Pablo registre obras desde la zona privada, aparecerán aquí.</p>
-
-    {% if session.get("usuario_id") %}
+    {% if q %}
+        <h2>No hay resultados para esa búsqueda</h2>
+        <p>Prueba con otro autor, título o casa de subastas.</p>
         <div class="section-actions">
-            <a class="button" href="{{ url_for('nueva_obra') }}">Añadir primera obra</a>
+            <a class="button secondary" href="{{ url_for('coleccion') }}">Limpiar búsqueda</a>
         </div>
+    {% else %}
+        <h2>Todavía no hay obras añadidas</h2>
+        <p>Cuando Pablo registre obras desde la zona privada, aparecerán aquí.</p>
+
+        {% if session.get("usuario_id") %}
+            <div class="section-actions">
+                <a class="button" href="{{ url_for('nueva_obra') }}">Añadir primera obra</a>
+            </div>
+        {% endif %}
     {% endif %}
 </section>
 {% endif %}
