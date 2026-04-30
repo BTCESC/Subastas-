@@ -17,6 +17,7 @@
                 <a href="{{ url_for('coleccion') }}">Colección</a>
 
                 {% if session.get("usuario_id") %}
+                    <a href="{{ url_for('panel') }}">Panel</a>
                     <a href="{{ url_for('nueva_obra') }}">Añadir obra</a>
                     <form class="nav-form" method="post" action="{{ url_for('logout') }}">
                         <button type="submit">Salir</button>

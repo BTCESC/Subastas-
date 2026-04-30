@@ -142,6 +142,12 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/panel")
+@login_required
+def panel():
+    return render_template("panel.html")
+
+
 @app.route("/coleccion")
 def coleccion():
     busqueda = request.args.get("q", "").strip()
@@ -165,7 +171,7 @@ def detalle_obra(obra_id):
 
     if not obra:
         flash("No se encontró la obra solicitada.")
-        return redirect(url_for("coleccion"))
+        return redirect(url_for("panel"))
 
     return render_template("obra_detalle.html", obra=obra)
 
@@ -173,7 +179,7 @@ def detalle_obra(obra_id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("usuario_id"):
-        return redirect(url_for("coleccion"))
+        return redirect(url_for("panel"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()

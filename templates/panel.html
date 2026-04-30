@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Panel privado | Archivo de Subastas{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Zona privada</p>
+    <h1>Panel de gestión</h1>
+    <p>
+        Desde aquí se gestionan las obras del archivo. Esta zona está reservada
+        para usuarios autorizados.
+    </p>
+</section>
+
+<section class="panel-grid">
+    <article class="panel-card">
+        <p class="eyebrow">Registro</p>
+        <h2>Añadir obra</h2>
+        <p>Crear una nueva ficha de subasta con autor, título, precios, imágenes y notas.</p>
+        <a class="button" href="{{ url_for('nueva_obra') }}">Añadir obra</a>
+    </article>
+
+    <article class="panel-card">
+        <p class="eyebrow">Colección</p>
+        <h2>Consultar obras</h2>
+        <p>Ver las obras guardadas, buscar por autor, título o casa de subastas y filtrar por estado.</p>
+        <a class="button secondary" href="{{ url_for('coleccion') }}">Ver colección</a>
+    </article>
+
+    <article class="panel-card">
+        <p class="eyebrow">Edición</p>
+        <h2>Corregir registros</h2>
+        <p>Desde cada ficha se pueden editar datos, cambiar el estado o borrar obras creadas por error.</p>
+        <a class="button secondary" href="{{ url_for('coleccion', estado='borrador') }}">Ver borradores</a>
+    </article>
+
+    <article class="panel-card muted-card">
+        <p class="eyebrow">Pendiente</p>
+        <h2>Autores</h2>
+        <p>Más adelante se añadirá una vista para revisar autores y evitar duplicados.</p>
+    </article>
+</section>
+{% endblock %}
