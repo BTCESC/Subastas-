@@ -8,12 +8,13 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 
+from ai import analizar_ficha_con_gemini
 from db import (
     actualizar_obra,
     borrar_obra,
     insertar_obra_con_autor,
-    listar_obras,
     listar_autores,
+    listar_obras,
     obtener_obra_por_id,
     obtener_usuario_por_username,
 )
@@ -135,7 +136,39 @@ def preparar_form_data_desde_obra(obra):
         "enlace_original": obra["enlace_original"] or "",
         "notas": obra["notas"] or "",
         "estado": obra["estado"] or "publicada",
+        "imagen_obra_existente": obra["imagen_obra"] or "",
+        "imagen_ficha_existente": obra["imagen_ficha"] or "",
     }
+
+
+def mezclar_datos_ia_con_formulario(formulario, datos_ia, imagen_obra=None, imagen_ficha=None):
+    form_data = dict(formulario)
+
+    campos = [
+        "autor",
+        "titulo",
+        "tecnica",
+        "medidas",
+        "numero_lote",
+        "precio_salida",
+        "casa_subastas",
+        "fecha_subasta",
+    ]
+
+    for campo in campos:
+        valor_actual = (form_data.get(campo) or "").strip()
+        valor_ia = (datos_ia.get(campo) or "").strip()
+
+        if not valor_actual and valor_ia:
+            form_data[campo] = valor_ia
+
+    if imagen_obra:
+        form_data["imagen_obra_existente"] = imagen_obra
+
+    if imagen_ficha:
+        form_data["imagen_ficha_existente"] = imagen_ficha
+
+    return form_data
 
 
 @app.route("/")
@@ -179,7 +212,7 @@ def detalle_obra(obra_id):
 
     if not obra:
         flash("No se encontró la obra solicitada.")
-        return redirect(url_for("panel"))
+        return redirect(url_for("coleccion"))
 
     return render_template("obra_detalle.html", obra=obra)
 
@@ -205,7 +238,7 @@ def login():
             if next_url and next_url.startswith("/"):
                 return redirect(next_url)
 
-            return redirect(url_for("coleccion"))
+            return redirect(url_for("panel"))
 
         flash("Usuario o contraseña incorrectos.")
 
@@ -225,16 +258,45 @@ def nueva_obra():
 
     if request.method == "POST":
         form_data = request.form
+        accion = request.form.get("accion", "guardar")
 
         try:
+            if accion == "analizar_ia":
+                imagen_obra_existente = limpiar_texto(request.form.get("imagen_obra_existente"))
+                imagen_ficha_existente = limpiar_texto(request.form.get("imagen_ficha_existente"))
+
+                nueva_imagen_obra = guardar_imagen_subida(request.files.get("imagen_obra"), "obra")
+                nueva_imagen_ficha = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha")
+
+                imagen_obra = nueva_imagen_obra or imagen_obra_existente
+                imagen_ficha = nueva_imagen_ficha or imagen_ficha_existente
+
+                if not imagen_ficha:
+                    flash("Sube una imagen de la ficha antes de usar la IA.")
+                    return render_template("nueva_obra.html", form_data=form_data)
+
+                datos_ia = analizar_ficha_con_gemini(UPLOAD_FOLDER / imagen_ficha)
+                form_data = mezclar_datos_ia_con_formulario(
+                    request.form,
+                    datos_ia,
+                    imagen_obra=imagen_obra,
+                    imagen_ficha=imagen_ficha,
+                )
+
+                flash("Ficha analizada con IA. Revisa los datos antes de guardar.")
+                return render_template("nueva_obra.html", form_data=form_data)
+
             datos_obra = obtener_datos_obra_desde_formulario()
 
             if not datos_obra["autor"] or not datos_obra["titulo"]:
                 flash("Autor y título son obligatorios, incluso si la obra queda como borrador.")
                 return render_template("nueva_obra.html", form_data=form_data)
 
-            datos_obra["imagen_obra"] = guardar_imagen_subida(request.files.get("imagen_obra"), "obra")
-            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha")
+            imagen_obra_existente = limpiar_texto(request.form.get("imagen_obra_existente"))
+            imagen_ficha_existente = limpiar_texto(request.form.get("imagen_ficha_existente"))
+
+            datos_obra["imagen_obra"] = guardar_imagen_subida(request.files.get("imagen_obra"), "obra") or imagen_obra_existente
+            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha") or imagen_ficha_existente
 
             insertar_obra_con_autor(datos_obra, creado_por=session.get("usuario_id"))
             flash("Obra guardada correctamente.")
@@ -242,8 +304,15 @@ def nueva_obra():
 
         except ValueError as error:
             flash(str(error))
-        except Exception:
-            flash("No se pudo guardar la obra. Revisa los datos e inténtalo de nuevo.")
+        except Exception as error:
+            error_texto = str(error)
+
+            if "RESOURCE_EXHAUSTED" in error_texto or "429" in error_texto:
+                flash("La IA está temporalmente limitada. Espera un minuto y vuelve a intentarlo.")
+            elif "API key" in error_texto or "GEMINI_API_KEY" in error_texto:
+                flash("No se ha podido usar la IA porque falta o no es válida la clave de Gemini.")
+            else:
+                flash("No se pudo procesar la ficha con IA. Revisa la imagen e inténtalo de nuevo.")
 
     return render_template("nueva_obra.html", form_data=form_data)
 

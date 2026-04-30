@@ -1,4 +1,7 @@
 <form class="form-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="imagen_obra_existente" value="{{ form_data.get('imagen_obra_existente', '') if form_data else '' }}">
+    <input type="hidden" name="imagen_ficha_existente" value="{{ form_data.get('imagen_ficha_existente', '') if form_data else '' }}">
+
     <div class="form-grid">
         <div class="form-group">
             <label for="estado">Estado</label>
@@ -61,24 +64,40 @@
         <div class="form-group">
             <label for="imagen_obra">Imagen del cuadro</label>
             <input type="file" id="imagen_obra" name="imagen_obra" accept="image/*">
-            {% if obra and obra.imagen_obra %}
+
+            {% set imagen_obra_form = form_data.get('imagen_obra_existente', '') if form_data else '' %}
+            {% if imagen_obra_form %}
+                <div class="current-file">
+                    <span>Imagen seleccionada:</span>
+                    <img src="{{ url_for('static', filename='uploads/' ~ imagen_obra_form) }}" alt="Imagen seleccionada del cuadro">
+                </div>
+            {% elif obra is defined and obra.imagen_obra %}
                 <div class="current-file">
                     <span>Imagen actual:</span>
                     <img src="{{ url_for('static', filename='uploads/' ~ obra.imagen_obra) }}" alt="Imagen actual del cuadro">
                 </div>
             {% endif %}
+
             <small>Formatos permitidos: JPG, JPEG, PNG, WEBP o GIF.</small>
         </div>
 
         <div class="form-group">
             <label for="imagen_ficha">Imagen o captura de la ficha</label>
             <input type="file" id="imagen_ficha" name="imagen_ficha" accept="image/*">
-            {% if obra and obra.imagen_ficha %}
+
+            {% set imagen_ficha_form = form_data.get('imagen_ficha_existente', '') if form_data else '' %}
+            {% if imagen_ficha_form %}
+                <div class="current-file">
+                    <span>Ficha seleccionada:</span>
+                    <img src="{{ url_for('static', filename='uploads/' ~ imagen_ficha_form) }}" alt="Ficha seleccionada">
+                </div>
+            {% elif obra is defined and obra.imagen_ficha %}
                 <div class="current-file">
                     <span>Ficha actual:</span>
                     <img src="{{ url_for('static', filename='uploads/' ~ obra.imagen_ficha) }}" alt="Imagen actual de la ficha">
                 </div>
             {% endif %}
+
             <small>Formatos permitidos: JPG, JPEG, PNG, WEBP o GIF.</small>
         </div>
 
@@ -89,7 +108,11 @@
     </div>
 
     <div class="form-actions">
-        <button class="button" type="submit">{{ texto_boton }}</button>
+        {% if mostrar_boton_ia|default(false) %}
+            <button class="button secondary" type="submit" name="accion" value="analizar_ia" formnovalidate>Leer ficha con IA</button>
+        {% endif %}
+
+        <button class="button" type="submit" name="accion" value="guardar">{{ texto_boton }}</button>
         <a class="button secondary" href="{{ url_for('coleccion') }}">Volver a colección</a>
     </div>
 </form>

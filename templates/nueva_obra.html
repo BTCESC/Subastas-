@@ -8,10 +8,11 @@
     <h1>Añadir obra de subasta</h1>
     <p>
         Registra los datos principales de una obra vista en una subasta.
-        Puede guardarse como publicada o como borrador.
+        Puedes leer la ficha con IA, revisar los datos y guardar después.
     </p>
 </section>
 
 {% set texto_boton = "Guardar obra" %}
+{% set mostrar_boton_ia = true %}
 {% include "form_obra.html" %}
 {% endblock %}
