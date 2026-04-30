@@ -34,10 +34,11 @@
         <a class="button secondary" href="{{ url_for('coleccion', estado='borrador') }}">Ver borradores</a>
     </article>
 
-    <article class="panel-card muted-card">
-        <p class="eyebrow">Pendiente</p>
-        <h2>Autores</h2>
-        <p>Más adelante se añadirá una vista para revisar autores y evitar duplicados.</p>
+    <article class="panel-card">
+        <p class="eyebrow">Autores</p>
+        <h2>Control de autores</h2>
+        <p>Revisa los autores registrados y detecta posibles duplicados en el archivo.</p>
+        <a class="button secondary" href="{{ url_for('autores') }}">Ver autores</a>
     </article>
 </section>
 {% endblock %}

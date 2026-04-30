@@ -13,6 +13,7 @@ from db import (
     borrar_obra,
     insertar_obra_con_autor,
     listar_obras,
+    listar_autores,
     obtener_obra_por_id,
     obtener_usuario_por_username,
 )
@@ -146,6 +147,13 @@ def index():
 @login_required
 def panel():
     return render_template("panel.html")
+
+
+@app.route("/autores")
+@login_required
+def autores():
+    autores = listar_autores()
+    return render_template("autores.html", autores=autores)
 
 
 @app.route("/coleccion")

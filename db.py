@@ -301,6 +301,25 @@ def borrar_obra(obra_id):
 
     return obra_borrada
 
+def listar_autores():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    autores.id,
+                    autores.nombre_principal,
+                    autores.notas,
+                    autores.creado_en,
+                    COUNT(obras.id) AS total_obras
+                FROM autores
+                LEFT JOIN obras ON obras.autor_id = autores.id
+                GROUP BY autores.id
+                ORDER BY LOWER(autores.nombre_principal);
+                """
+            )
+            return cur.fetchall()
+
 
 if __name__ == "__main__":
     init_db()

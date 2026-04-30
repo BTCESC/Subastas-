@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Autores | Archivo de Subastas{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Autores</p>
+    <h1>Control de autores</h1>
+    <p>
+        Revisa los autores registrados en el archivo. Esta vista ayudará a detectar
+        posibles duplicados cuando una misma persona aparezca escrita de varias formas.
+    </p>
+
+    <div class="section-actions">
+        <a class="button secondary" href="{{ url_for('panel') }}">Volver al panel</a>
+        <a class="button" href="{{ url_for('nueva_obra') }}">Añadir obra</a>
+    </div>
+</section>
+
+{% if autores %}
+<section class="table-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Autor</th>
+                <th>Obras registradas</th>
+                <th>Notas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for autor in autores %}
+                <tr>
+                    <td>{{ autor.nombre_principal }}</td>
+                    <td>{{ autor.total_obras }}</td>
+                    <td>{{ autor.notas or "—" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% else %}
+<section class="empty-state">
+    <h2>Todavía no hay autores registrados</h2>
+    <p>Cuando se añadan obras, sus autores aparecerán aquí automáticamente.</p>
+</section>
+{% endif %}
+{% endblock %}
