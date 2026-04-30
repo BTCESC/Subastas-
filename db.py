@@ -104,10 +104,12 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
                     precio_salida,
                     comision_porcentaje,
                     enlace_original,
+                    imagen_obra,
+                    imagen_ficha,
                     notas,
                     estado
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
                 """,
                 (
@@ -122,6 +124,8 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
                     datos_obra.get("precio_salida"),
                     datos_obra.get("comision_porcentaje"),
                     datos_obra.get("enlace_original"),
+                    datos_obra.get("imagen_obra"),
+                    datos_obra.get("imagen_ficha"),
                     datos_obra.get("notas"),
                     datos_obra.get("estado", "publicada"),
                 ),
@@ -150,6 +154,8 @@ def listar_obras():
                     obras.precio_salida,
                     obras.comision_porcentaje,
                     obras.precio_final,
+                    obras.imagen_obra,
+                    obras.imagen_ficha,
                     obras.estado,
                     obras.creado_en,
                     autores.nombre_principal AS autor
@@ -178,6 +184,8 @@ def obtener_obra_por_id(obra_id):
                     obras.comision_porcentaje,
                     obras.precio_final,
                     obras.enlace_original,
+                    obras.imagen_obra,
+                    obras.imagen_ficha,
                     obras.notas,
                     obras.estado,
                     autores.nombre_principal AS autor
@@ -212,6 +220,8 @@ def actualizar_obra(obra_id, datos_obra):
                     precio_salida = %s,
                     comision_porcentaje = %s,
                     enlace_original = %s,
+                    imagen_obra = %s,
+                    imagen_ficha = %s,
                     notas = %s,
                     estado = %s,
                     actualizado_en = NOW()
@@ -229,6 +239,8 @@ def actualizar_obra(obra_id, datos_obra):
                     datos_obra.get("precio_salida"),
                     datos_obra.get("comision_porcentaje"),
                     datos_obra.get("enlace_original"),
+                    datos_obra.get("imagen_obra"),
+                    datos_obra.get("imagen_ficha"),
                     datos_obra.get("notas"),
                     datos_obra.get("estado", "publicada"),
                     obra_id,

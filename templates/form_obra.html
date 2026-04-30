@@ -61,13 +61,25 @@
         <div class="form-group">
             <label for="imagen_obra">Imagen del cuadro</label>
             <input type="file" id="imagen_obra" name="imagen_obra" accept="image/*">
-            <small>La subida real de imágenes se activará en el siguiente bloque.</small>
+            {% if obra and obra.imagen_obra %}
+                <div class="current-file">
+                    <span>Imagen actual:</span>
+                    <img src="{{ url_for('static', filename='uploads/' ~ obra.imagen_obra) }}" alt="Imagen actual del cuadro">
+                </div>
+            {% endif %}
+            <small>Formatos permitidos: JPG, JPEG, PNG, WEBP o GIF.</small>
         </div>
 
         <div class="form-group">
             <label for="imagen_ficha">Imagen o captura de la ficha</label>
             <input type="file" id="imagen_ficha" name="imagen_ficha" accept="image/*">
-            <small>La subida real de imágenes se activará en el siguiente bloque.</small>
+            {% if obra and obra.imagen_ficha %}
+                <div class="current-file">
+                    <span>Ficha actual:</span>
+                    <img src="{{ url_for('static', filename='uploads/' ~ obra.imagen_ficha) }}" alt="Imagen actual de la ficha">
+                </div>
+            {% endif %}
+            <small>Formatos permitidos: JPG, JPEG, PNG, WEBP o GIF.</small>
         </div>
 
         <div class="form-group form-group-full">

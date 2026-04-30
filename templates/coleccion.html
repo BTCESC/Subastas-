@@ -19,6 +19,10 @@
 <section class="cards-grid">
     {% for obra in obras %}
         <article class="obra-card">
+            {% if obra.imagen_obra %}
+                <img class="obra-image" src="{{ url_for('static', filename='uploads/' ~ obra.imagen_obra) }}" alt="Imagen de {{ obra.titulo }}">
+            {% endif %}
+
             <div class="card-topline">
                 <p class="eyebrow">Lote {{ obra.numero_lote or "sin número" }}</p>
                 <span class="status-badge status-{{ obra.estado }}">{{ obra.estado }}</span>

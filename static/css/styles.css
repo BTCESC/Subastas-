@@ -480,3 +480,31 @@ select:focus {
     color: #ffb4b4;
     border: 1px solid rgba(255, 180, 180, 0.35);
 }
+
+.obra-image {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    margin-bottom: 18px;
+    background: #121212;
+}
+
+.current-file {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.current-file span {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.current-file img {
+    width: 100%;
+    max-width: 220px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+}

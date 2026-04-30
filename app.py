@@ -1,10 +1,12 @@
 from decimal import Decimal, InvalidOperation
 from functools import wraps
 from pathlib import Path
+from uuid import uuid4
 import os
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
 
 from db import (
     actualizar_obra,
@@ -20,9 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_FOLDER = BASE_DIR / "static" / "uploads"
 UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
+EXTENSIONES_IMAGEN_PERMITIDAS = {"jpg", "jpeg", "png", "webp", "gif"}
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
 
 def login_required(view):
@@ -50,6 +55,28 @@ def convertir_decimal_opcional(valor, nombre_campo):
         return Decimal(valor)
     except InvalidOperation as exc:
         raise ValueError(f"{nombre_campo} debe ser un número válido.") from exc
+
+
+def extension_permitida(nombre_archivo):
+    return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_IMAGEN_PERMITIDAS
+
+
+def guardar_imagen_subida(archivo, prefijo):
+    if not archivo or not archivo.filename:
+        return None
+
+    nombre_original = secure_filename(archivo.filename)
+
+    if not extension_permitida(nombre_original):
+        raise ValueError("Solo se permiten imágenes JPG, JPEG, PNG, WEBP o GIF.")
+
+    extension = nombre_original.rsplit(".", 1)[1].lower()
+    nombre_final = f"{prefijo}_{uuid4().hex}.{extension}"
+    ruta_destino = UPLOAD_FOLDER / nombre_final
+
+    archivo.save(ruta_destino)
+
+    return nombre_final
 
 
 def obtener_datos_obra_desde_formulario():
@@ -156,6 +183,9 @@ def nueva_obra():
                 flash("Autor y título son obligatorios, incluso si la obra queda como borrador.")
                 return render_template("nueva_obra.html", form_data=form_data)
 
+            datos_obra["imagen_obra"] = guardar_imagen_subida(request.files.get("imagen_obra"), "obra")
+            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha")
+
             insertar_obra_con_autor(datos_obra, creado_por=session.get("usuario_id"))
             flash("Obra guardada correctamente.")
             return redirect(url_for("coleccion"))
@@ -188,6 +218,12 @@ def editar_obra(obra_id):
             if not datos_obra["autor"] or not datos_obra["titulo"]:
                 flash("Autor y título son obligatorios, incluso si la obra queda como borrador.")
                 return render_template("editar_obra.html", obra=obra, form_data=form_data)
+
+            nueva_imagen_obra = guardar_imagen_subida(request.files.get("imagen_obra"), "obra")
+            nueva_imagen_ficha = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha")
+
+            datos_obra["imagen_obra"] = nueva_imagen_obra or obra["imagen_obra"]
+            datos_obra["imagen_ficha"] = nueva_imagen_ficha or obra["imagen_ficha"]
 
             actualizada = actualizar_obra(obra_id, datos_obra)
 
