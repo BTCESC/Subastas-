@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Editar obra | Archivo de Subastas{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Editar obra</p>
+    <h1>Editar obra registrada</h1>
+    <p>Modifica los datos guardados de esta obra.</p>
+</section>
+
+{% set texto_boton = "Guardar cambios" %}
+{% include "form_obra.html" %}
+{% endblock %}

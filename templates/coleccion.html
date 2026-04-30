@@ -19,7 +19,11 @@
 <section class="cards-grid">
     {% for obra in obras %}
         <article class="obra-card">
-            <p class="eyebrow">Lote {{ obra.numero_lote or "sin número" }}</p>
+            <div class="card-topline">
+                <p class="eyebrow">Lote {{ obra.numero_lote or "sin número" }}</p>
+                <span class="status-badge status-{{ obra.estado }}">{{ obra.estado }}</span>
+            </div>
+
             <h2>{{ obra.titulo }}</h2>
 
             <dl class="obra-meta">
@@ -70,6 +74,16 @@
                 </div>
                 {% endif %}
             </dl>
+
+            {% if session.get("usuario_id") %}
+                <div class="card-actions">
+                    <a class="button secondary" href="{{ url_for('editar_obra', obra_id=obra.id) }}">Editar</a>
+
+                    <form method="post" action="{{ url_for('borrar_obra_route', obra_id=obra.id) }}" onsubmit="return confirm('¿Seguro que quieres borrar esta obra?');">
+                        <button class="button danger" type="submit">Borrar</button>
+                    </form>
+                </div>
+            {% endif %}
         </article>
     {% endfor %}
 </section>

@@ -6,7 +6,14 @@ import os
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
-from db import insertar_obra_con_autor, listar_obras, obtener_usuario_por_username
+from db import (
+    actualizar_obra,
+    borrar_obra,
+    insertar_obra_con_autor,
+    listar_obras,
+    obtener_obra_por_id,
+    obtener_usuario_por_username,
+)
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -43,6 +50,50 @@ def convertir_decimal_opcional(valor, nombre_campo):
         return Decimal(valor)
     except InvalidOperation as exc:
         raise ValueError(f"{nombre_campo} debe ser un número válido.") from exc
+
+
+def obtener_datos_obra_desde_formulario():
+    estado = request.form.get("estado", "publicada")
+    if estado not in {"borrador", "publicada"}:
+        estado = "publicada"
+
+    return {
+        "autor": limpiar_texto(request.form.get("autor")),
+        "titulo": limpiar_texto(request.form.get("titulo")),
+        "tecnica": limpiar_texto(request.form.get("tecnica")),
+        "medidas": limpiar_texto(request.form.get("medidas")),
+        "casa_subastas": limpiar_texto(request.form.get("casa_subastas")),
+        "fecha_subasta": limpiar_texto(request.form.get("fecha_subasta")),
+        "numero_lote": limpiar_texto(request.form.get("numero_lote")),
+        "precio_salida": convertir_decimal_opcional(
+            request.form.get("precio_salida"),
+            "Precio de salida",
+        ),
+        "comision_porcentaje": convertir_decimal_opcional(
+            request.form.get("comision"),
+            "Comisión",
+        ),
+        "enlace_original": limpiar_texto(request.form.get("enlace_original")),
+        "notas": limpiar_texto(request.form.get("notas")),
+        "estado": estado,
+    }
+
+
+def preparar_form_data_desde_obra(obra):
+    return {
+        "autor": obra["autor"],
+        "titulo": obra["titulo"],
+        "tecnica": obra["tecnica"] or "",
+        "medidas": obra["medidas"] or "",
+        "casa_subastas": obra["casa_subastas"] or "",
+        "fecha_subasta": obra["fecha_subasta"].isoformat() if obra["fecha_subasta"] else "",
+        "numero_lote": obra["numero_lote"] or "",
+        "precio_salida": obra["precio_salida"] or "",
+        "comision": obra["comision_porcentaje"] or "",
+        "enlace_original": obra["enlace_original"] or "",
+        "notas": obra["notas"] or "",
+        "estado": obra["estado"] or "publicada",
+    }
 
 
 @app.route("/")
@@ -98,33 +149,12 @@ def nueva_obra():
     if request.method == "POST":
         form_data = request.form
 
-        autor = limpiar_texto(request.form.get("autor"))
-        titulo = limpiar_texto(request.form.get("titulo"))
-
-        if not autor or not titulo:
-            flash("Autor y título son obligatorios.")
-            return render_template("nueva_obra.html", form_data=form_data)
-
         try:
-            datos_obra = {
-                "autor": autor,
-                "titulo": titulo,
-                "tecnica": limpiar_texto(request.form.get("tecnica")),
-                "medidas": limpiar_texto(request.form.get("medidas")),
-                "casa_subastas": limpiar_texto(request.form.get("casa_subastas")),
-                "fecha_subasta": limpiar_texto(request.form.get("fecha_subasta")),
-                "numero_lote": limpiar_texto(request.form.get("numero_lote")),
-                "precio_salida": convertir_decimal_opcional(
-                    request.form.get("precio_salida"),
-                    "Precio de salida",
-                ),
-                "comision_porcentaje": convertir_decimal_opcional(
-                    request.form.get("comision"),
-                    "Comisión",
-                ),
-                "enlace_original": limpiar_texto(request.form.get("enlace_original")),
-                "notas": limpiar_texto(request.form.get("notas")),
-            }
+            datos_obra = obtener_datos_obra_desde_formulario()
+
+            if not datos_obra["autor"] or not datos_obra["titulo"]:
+                flash("Autor y título son obligatorios, incluso si la obra queda como borrador.")
+                return render_template("nueva_obra.html", form_data=form_data)
 
             insertar_obra_con_autor(datos_obra, creado_por=session.get("usuario_id"))
             flash("Obra guardada correctamente.")
@@ -136,6 +166,56 @@ def nueva_obra():
             flash("No se pudo guardar la obra. Revisa los datos e inténtalo de nuevo.")
 
     return render_template("nueva_obra.html", form_data=form_data)
+
+
+@app.route("/obras/<int:obra_id>/editar", methods=["GET", "POST"])
+@login_required
+def editar_obra(obra_id):
+    obra = obtener_obra_por_id(obra_id)
+
+    if not obra:
+        flash("No se encontró la obra solicitada.")
+        return redirect(url_for("coleccion"))
+
+    form_data = preparar_form_data_desde_obra(obra)
+
+    if request.method == "POST":
+        form_data = request.form
+
+        try:
+            datos_obra = obtener_datos_obra_desde_formulario()
+
+            if not datos_obra["autor"] or not datos_obra["titulo"]:
+                flash("Autor y título son obligatorios, incluso si la obra queda como borrador.")
+                return render_template("editar_obra.html", obra=obra, form_data=form_data)
+
+            actualizada = actualizar_obra(obra_id, datos_obra)
+
+            if actualizada:
+                flash("Obra actualizada correctamente.")
+                return redirect(url_for("coleccion"))
+
+            flash("No se encontró la obra solicitada.")
+
+        except ValueError as error:
+            flash(str(error))
+        except Exception:
+            flash("No se pudo actualizar la obra. Revisa los datos e inténtalo de nuevo.")
+
+    return render_template("editar_obra.html", obra=obra, form_data=form_data)
+
+
+@app.route("/obras/<int:obra_id>/borrar", methods=["POST"])
+@login_required
+def borrar_obra_route(obra_id):
+    borrada = borrar_obra(obra_id)
+
+    if borrada:
+        flash("Obra borrada correctamente.")
+    else:
+        flash("No se encontró la obra solicitada.")
+
+    return redirect(url_for("coleccion"))
 
 
 if __name__ == "__main__":
