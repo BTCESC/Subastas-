@@ -6,15 +6,83 @@
 <section class="page-header">
     <p class="eyebrow">Colección</p>
     <h1>Obras registradas</h1>
-    <p>Esta sección mostrará las obras guardadas en la base de datos.</p>
+    <p>Consulta las obras guardadas en el archivo de subastas.</p>
+
+    {% if session.get("usuario_id") %}
+        <div class="section-actions">
+            <a class="button" href="{{ url_for('nueva_obra') }}">Añadir obra</a>
+        </div>
+    {% endif %}
 </section>
 
+{% if obras %}
+<section class="cards-grid">
+    {% for obra in obras %}
+        <article class="obra-card">
+            <p class="eyebrow">Lote {{ obra.numero_lote or "sin número" }}</p>
+            <h2>{{ obra.titulo }}</h2>
+
+            <dl class="obra-meta">
+                <div>
+                    <dt>Autor</dt>
+                    <dd>{{ obra.autor }}</dd>
+                </div>
+
+                {% if obra.tecnica %}
+                <div>
+                    <dt>Técnica</dt>
+                    <dd>{{ obra.tecnica }}</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.medidas %}
+                <div>
+                    <dt>Medidas</dt>
+                    <dd>{{ obra.medidas }}</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.casa_subastas %}
+                <div>
+                    <dt>Casa de subastas</dt>
+                    <dd>{{ obra.casa_subastas }}</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.fecha_subasta %}
+                <div>
+                    <dt>Fecha</dt>
+                    <dd>{{ obra.fecha_subasta.strftime('%d/%m/%Y') }}</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.precio_salida is not none %}
+                <div>
+                    <dt>Precio de salida</dt>
+                    <dd>{{ obra.precio_salida }} €</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.precio_final is not none %}
+                <div>
+                    <dt>Precio final estimado</dt>
+                    <dd>{{ obra.precio_final }} €</dd>
+                </div>
+                {% endif %}
+            </dl>
+        </article>
+    {% endfor %}
+</section>
+{% else %}
 <section class="empty-state">
     <h2>Todavía no hay obras añadidas</h2>
-    <p>El siguiente paso será conectar el formulario con la base de datos.</p>
+    <p>Cuando Pablo registre obras desde la zona privada, aparecerán aquí.</p>
 
-    <div class="section-actions">
-        <a class="button" href="{{ url_for('nueva_obra') }}">Añadir primera obra</a>
-    </div>
+    {% if session.get("usuario_id") %}
+        <div class="section-actions">
+            <a class="button" href="{{ url_for('nueva_obra') }}">Añadir primera obra</a>
+        </div>
+    {% endif %}
 </section>
+{% endif %}
 {% endblock %}
