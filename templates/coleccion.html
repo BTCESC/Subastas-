@@ -38,9 +38,16 @@
                 </select>
             </div>
 
+            {% if session.get("usuario_id") %}
+                <label class="checkbox-filter">
+                    <input type="checkbox" name="sin_titulo" value="1" {% if sin_titulo %}checked{% endif %}>
+                    Solo sin título
+                </label>
+            {% endif %}
+
             <div class="search-actions">
                 <button class="button" type="submit">Filtrar</button>
-                {% if q or estado_filtro %}
+                {% if q or estado_filtro or sin_titulo %}
                     <a class="button secondary" href="{{ url_for('coleccion') }}">Limpiar</a>
                 {% endif %}
             </div>
@@ -48,9 +55,9 @@
     </form>
 </section>
 
-{% if q or estado_filtro %}
+{% if q or estado_filtro or sin_titulo %}
     <p class="results-summary">
-        Resultados{% if q %} para “{{ q }}”{% endif %}{% if estado_filtro %} · Estado: {{ estado_filtro }}{% endif %}: {{ obras|length }}
+        Resultados{% if q %} para “{{ q }}”{% endif %}{% if estado_filtro %} · Estado: {{ estado_filtro }}{% endif %}{% if sin_titulo %} · Sin título{% endif %}: {{ obras|length }}
     </p>
 {% endif %}
 
@@ -122,6 +129,12 @@
                 <a class="button secondary" href="{{ url_for('detalle_obra', obra_id=obra.id) }}">Ver ficha</a>
 
                 {% if session.get("usuario_id") %}
+                    {% if obra.estado == "borrador" %}
+                        <form method="post" action="{{ url_for('publicar_obra', obra_id=obra.id) }}" onsubmit="return confirm('¿Publicar esta obra?');">
+                            <button class="button" type="submit">Publicar</button>
+                        </form>
+                    {% endif %}
+
                     <a class="button secondary" href="{{ url_for('editar_obra', obra_id=obra.id) }}">Editar</a>
 
                     <form method="post" action="{{ url_for('borrar_obra_route', obra_id=obra.id) }}" onsubmit="return confirm('¿Seguro que quieres borrar esta obra?');">
@@ -134,7 +147,7 @@
 </section>
 {% else %}
 <section class="empty-state">
-    {% if q or estado_filtro %}
+    {% if q or estado_filtro or sin_titulo %}
         <h2>No hay resultados para esos filtros</h2>
         <p>Prueba con otro autor, título, casa de subastas o estado.</p>
         <div class="section-actions">

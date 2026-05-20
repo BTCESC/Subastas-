@@ -32,6 +32,7 @@
         <h2>Corregir registros</h2>
         <p>Desde cada ficha se pueden editar datos, cambiar el estado o borrar obras creadas por error.</p>
         <a class="button secondary" href="{{ url_for('coleccion', estado='borrador') }}">Ver borradores</a>
+        <a class="button secondary" href="{{ url_for('coleccion', estado='borrador', sin_titulo='1') }}">Ver sin título</a>
     </article>
 
     <article class="panel-card">

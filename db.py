@@ -138,7 +138,7 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
     return obra_id
 
 
-def listar_obras(busqueda=None, estado=None):
+def listar_obras(busqueda=None, estado=None, sin_titulo=False):
     busqueda = (busqueda or "").strip()
     estado = (estado or "").strip()
 
@@ -164,6 +164,15 @@ def listar_obras(busqueda=None, estado=None):
             if estado:
                 condiciones.append("obras.estado = %s")
                 parametros.append(estado)
+
+            if sin_titulo:
+                condiciones.append("""
+                    (
+                        obras.titulo IS NULL
+                        OR TRIM(obras.titulo) = ''
+                        OR LOWER(TRIM(obras.titulo)) = 'sin título'
+                    )
+                """)
 
             where_sql = ""
             if condiciones:
@@ -319,6 +328,28 @@ def listar_autores():
                 """
             )
             return cur.fetchall()
+
+def cambiar_estado_obra(obra_id, estado):
+    if estado not in {"borrador", "publicada"}:
+        return False
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE obras
+                SET estado = %s,
+                    actualizado_en = NOW()
+                WHERE id = %s
+                RETURNING id;
+                """,
+                (estado, obra_id),
+            )
+            obra_actualizada = cur.fetchone()
+
+        conn.commit()
+
+    return obra_actualizada is not None
 
 
 if __name__ == "__main__":

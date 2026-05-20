@@ -12,6 +12,12 @@
         <a class="button secondary" href="{{ url_for('coleccion') }}">Volver a colección</a>
 
         {% if session.get("usuario_id") %}
+            {% if obra.estado == "borrador" %}
+                <form class="inline-form" method="post" action="{{ url_for('publicar_obra', obra_id=obra.id) }}" onsubmit="return confirm('¿Publicar esta obra?');">
+                    <button class="button" type="submit">Publicar obra</button>
+                </form>
+            {% endif %}
+
             <a class="button" href="{{ url_for('editar_obra', obra_id=obra.id) }}">Editar obra</a>
         {% endif %}
     </div>

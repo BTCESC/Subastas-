@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 
 from ai import analizar_ficha_con_gemini
 from db import (
+    cambiar_estado_obra,
     actualizar_obra,
     borrar_obra,
     insertar_obra_con_autor,
@@ -212,6 +213,7 @@ def autores():
 def coleccion():
     busqueda = request.args.get("q", "").strip()
     estado_filtro = request.args.get("estado", "").strip()
+    sin_titulo = request.args.get("sin_titulo") == "1"
 
     if session.get("usuario_id"):
         if estado_filtro not in {"publicada", "borrador"}:
@@ -219,12 +221,13 @@ def coleccion():
     else:
         estado_filtro = "publicada"
 
-    obras = listar_obras(busqueda, estado_filtro)
+    obras = listar_obras(busqueda, estado_filtro, sin_titulo)
     return render_template(
         "coleccion.html",
         obras=obras,
         q=busqueda,
         estado_filtro=estado_filtro,
+        sin_titulo=sin_titulo,
     )
 
 
@@ -381,6 +384,19 @@ def editar_obra(obra_id):
             flash("No se pudo actualizar la obra. Revisa los datos e inténtalo de nuevo.")
 
     return render_template("editar_obra.html", obra=obra, form_data=form_data)
+
+
+@app.route("/obras/<int:obra_id>/publicar", methods=["POST"])
+@login_required
+def publicar_obra(obra_id):
+    actualizada = cambiar_estado_obra(obra_id, "publicada")
+
+    if actualizada:
+        flash("Obra publicada correctamente.")
+    else:
+        flash("No se encontró la obra solicitada.")
+
+    return redirect(request.referrer or url_for("coleccion"))
 
 
 @app.route("/obras/<int:obra_id>/borrar", methods=["POST"])
