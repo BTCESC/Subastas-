@@ -246,7 +246,7 @@ def migrar(ejecutar=False, limite=None):
                         precio_salida,
                         imagen_obra,
                         imagen_ficha,
-                        notas,
+                        migracion_info,
                         estado
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'borrador');

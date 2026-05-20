@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS autores (
     id BIGSERIAL PRIMARY KEY,
     nombre_principal VARCHAR(255) NOT NULL,
     notas TEXT,
+    migracion_info TEXT,
     creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS obras (
     imagen_obra VARCHAR(255),
     imagen_ficha VARCHAR(255),
     notas TEXT,
+    migracion_info TEXT,
 
     creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     actualizado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
