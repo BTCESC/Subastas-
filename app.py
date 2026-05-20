@@ -171,6 +171,25 @@ def mezclar_datos_ia_con_formulario(formulario, datos_ia, imagen_obra=None, imag
     return form_data
 
 
+def recordar_datos_recurrentes(formulario):
+    casa_subastas = limpiar_texto(formulario.get("casa_subastas"))
+    comision = limpiar_texto(formulario.get("comision"))
+
+    if casa_subastas:
+        session["casa_subastas_default"] = casa_subastas
+
+    if comision:
+        session["comision_default"] = comision
+
+
+def form_data_con_datos_recurrentes():
+    return {
+        "casa_subastas": session.get("casa_subastas_default", ""),
+        "comision": session.get("comision_default", ""),
+        "estado": "publicada",
+    }
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -194,8 +213,11 @@ def coleccion():
     busqueda = request.args.get("q", "").strip()
     estado_filtro = request.args.get("estado", "").strip()
 
-    if estado_filtro not in {"publicada", "borrador"}:
-        estado_filtro = ""
+    if session.get("usuario_id"):
+        if estado_filtro not in {"publicada", "borrador"}:
+            estado_filtro = ""
+    else:
+        estado_filtro = "publicada"
 
     obras = listar_obras(busqueda, estado_filtro)
     return render_template(
@@ -254,11 +276,12 @@ def logout():
 @app.route("/obras/nueva", methods=["GET", "POST"])
 @login_required
 def nueva_obra():
-    form_data = None
+    form_data = form_data_con_datos_recurrentes()
 
     if request.method == "POST":
         form_data = request.form
         accion = request.form.get("accion", "guardar")
+        recordar_datos_recurrentes(request.form)
 
         try:
             if accion == "analizar_ia":
@@ -299,8 +322,8 @@ def nueva_obra():
             datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha") or imagen_ficha_existente
 
             insertar_obra_con_autor(datos_obra, creado_por=session.get("usuario_id"))
-            flash("Obra guardada correctamente.")
-            return redirect(url_for("coleccion"))
+            flash("Obra guardada correctamente. Puedes añadir otra obra de la misma subasta.")
+            return redirect(url_for("nueva_obra"))
 
         except ValueError as error:
             flash(str(error))
