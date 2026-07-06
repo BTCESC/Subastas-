@@ -4,6 +4,7 @@
 
 {% block content %}
 <section class="page-header">
+    <p class="origin-badge">{{ (obra.tipo_origen or "subasta")|upper }}</p>
     <p class="eyebrow">Ficha de obra</p>
     <h1>{{ obra.titulo }}</h1>
     <p>{% if obra.autor_id %}

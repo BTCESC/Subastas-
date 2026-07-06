@@ -65,6 +65,7 @@
 <section class="cards-grid">
     {% for obra in obras %}
         <article class="obra-card">
+            <p class="origin-badge">{{ (obra.tipo_origen or "subasta")|upper }}</p>
             {% if obra.imagen_obra %}
                 <img class="obra-image" src="{{ url_for('static', filename='uploads/' ~ obra.imagen_obra) }}" alt="Imagen de {{ obra.titulo }}">
             {% endif %}

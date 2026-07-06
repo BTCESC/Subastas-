@@ -194,6 +194,7 @@ def listar_obras(busqueda=None, estado=None, sin_titulo=False):
                     obras.imagen_obra,
                     obras.imagen_ficha,
                     obras.estado,
+                    obras.tipo_origen,
                     obras.creado_en,
                     autores.nombre_principal AS autor
                 FROM obras
@@ -227,6 +228,7 @@ def obtener_obra_por_id(obra_id):
                     obras.imagen_ficha,
                     obras.notas,
                     obras.estado,
+                    obras.tipo_origen,
                     autores.nombre_principal AS autor
                 FROM obras
                 JOIN autores ON autores.id = obras.autor_id
@@ -377,7 +379,7 @@ def listar_obras_por_autor(autor_id):
                     obras.medidas,
                     obras.imagen_obra,
                     obras.estado,
-                    'subasta' AS tipo_origen,
+                    obras.tipo_origen,
                     obras.casa_subastas
                 FROM obras
                 WHERE obras.autor_id = %s
