@@ -719,3 +719,24 @@ select:focus {
 .checkbox-filter input {
     width: auto;
 }
+
+
+.signature-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    max-width: 320px;
+}
+
+.signature-box img {
+    display: block;
+    max-width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+}
+
+.page-header.compact {
+    margin-top: 2rem;
+}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ autor.nombre_principal }} | Autor{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <p class="eyebrow">Autor</p>
+    <h1>{{ autor.nombre_principal }}</h1>
+
+    {% if autor.biografia %}
+        <p>{{ autor.biografia }}</p>
+    {% else %}
+        <p>Biografía pendiente de completar.</p>
+    {% endif %}
+
+    {% if autor.imagen_firma %}
+        <div class="signature-box">
+            <img src="{{ url_for('static', filename='uploads/' ~ autor.imagen_firma) }}" alt="Firma de {{ autor.nombre_principal }}">
+        </div>
+    {% endif %}
+</section>
+
+<section class="page-header compact">
+    <p class="eyebrow">Obras asociadas</p>
+    <h2>{{ obras|length }} obra{% if obras|length != 1 %}s{% endif %}</h2>
+</section>
+
+{% if obras %}
+<section class="cards-grid">
+    {% for obra in obras %}
+        <article class="obra-card">
+            {% if obra.imagen_obra %}
+                <img class="obra-image" src="{{ url_for('static', filename='uploads/' ~ obra.imagen_obra) }}" alt="Imagen de {{ obra.titulo }}">
+            {% endif %}
+
+            <div class="card-topline">
+                <p class="eyebrow">{{ obra.tipo_origen or "subasta" }}</p>
+                <span class="status-badge">{{ obra.estado }}</span>
+            </div>
+
+            <h2>{{ obra.titulo }}</h2>
+
+            <dl class="obra-meta">
+                {% if obra.tecnica %}
+                <div>
+                    <dt>Técnica</dt>
+                    <dd>{{ obra.tecnica }}</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.medidas %}
+                <div>
+                    <dt>Medidas</dt>
+                    <dd>{{ obra.medidas }}</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.casa_subastas %}
+                <div>
+                    <dt>Casa de subastas</dt>
+                    <dd>{{ obra.casa_subastas }}</dd>
+                </div>
+                {% endif %}
+
+                {% if obra.museo_galeria %}
+                <div>
+                    <dt>Museo o galería</dt>
+                    <dd>{{ obra.museo_galeria }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+
+            <div class="card-actions">
+                <a class="button secondary" href="{{ url_for('detalle_obra', obra_id=obra.id) }}">Ver ficha</a>
+            </div>
+        </article>
+    {% endfor %}
+</section>
+{% else %}
+<section class="empty-state">
+    <h2>Este autor todavía no tiene obras asociadas</h2>
+</section>
+{% endif %}
+{% endblock %}

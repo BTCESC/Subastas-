@@ -15,6 +15,8 @@ from db import (
     borrar_obra,
     insertar_obra_con_autor,
     listar_autores,
+    obtener_autor_por_id,
+    listar_obras_por_autor,
     listar_obras,
     obtener_obra_por_id,
     obtener_usuario_por_username,
@@ -200,6 +202,23 @@ def index():
 @login_required
 def panel():
     return render_template("panel.html")
+
+
+@app.route("/autores/<int:autor_id>")
+def detalle_autor(autor_id):
+    autor = obtener_autor_por_id(autor_id)
+
+    if not autor:
+        flash("Autor no encontrado.")
+        return redirect(url_for("autores"))
+
+    obras = listar_obras_por_autor(autor_id)
+
+    return render_template(
+        "autor_detalle.html",
+        autor=autor,
+        obras=obras,
+    )
 
 
 @app.route("/autores")

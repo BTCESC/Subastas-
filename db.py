@@ -351,6 +351,42 @@ def cambiar_estado_obra(obra_id, estado):
 
     return obra_actualizada is not None
 
+def obtener_autor_por_id(autor_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, nombre_principal, biografia, imagen_firma
+                FROM autores
+                WHERE id = %s;
+                """,
+                (autor_id,),
+            )
+            return cur.fetchone()
+
+
+def listar_obras_por_autor(autor_id):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    obras.id,
+                    obras.titulo,
+                    obras.tecnica,
+                    obras.medidas,
+                    obras.imagen_obra,
+                    obras.estado,
+                    'subasta' AS tipo_origen,
+                    obras.casa_subastas
+                FROM obras
+                WHERE obras.autor_id = %s
+                ORDER BY obras.creado_en DESC;
+                """,
+                (autor_id,),
+            )
+            return cur.fetchall()
+
 
 if __name__ == "__main__":
     init_db()
