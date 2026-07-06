@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Añadir obra de libro | Archivo de Subastas{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <p class="origin-badge">LIBRO</p>
+    <p class="eyebrow">Nueva obra</p>
+    <h1>Añadir obra de libro o catálogo</h1>
+    <p>
+        Formulario para registrar cuadros encontrados en libros,
+        catálogos o publicaciones de arte.
+    </p>
+</section>
+
+<section class="form-card">
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="autor">Autor *</label>
+                <input type="text" id="autor" name="autor" required>
+            </div>
+
+            <div class="form-group">
+                <label for="titulo">Título de la obra *</label>
+                <input type="text" id="titulo" name="titulo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="anio_obra">Año de la obra</label>
+                <input type="text" id="anio_obra" name="anio_obra">
+            </div>
+
+            <div class="form-group">
+                <label for="tecnica">Técnica</label>
+                <input type="text" id="tecnica" name="tecnica">
+            </div>
+
+            <div class="form-group">
+                <label for="medidas">Medidas</label>
+                <input type="text" id="medidas" name="medidas">
+            </div>
+
+            <div class="form-group">
+                <label for="libro_titulo">Libro o catálogo</label>
+                <input type="text" id="libro_titulo" name="libro_titulo">
+            </div>
+
+            <div class="form-group">
+                <label for="libro_pagina">Página</label>
+                <input type="text" id="libro_pagina" name="libro_pagina">
+            </div>
+
+            <div class="form-group">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado">
+                    <option value="publicada">Publicada</option>
+                    <option value="borrador">Borrador</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="descripcion">Descripción del libro</label>
+            <textarea id="descripcion" name="descripcion" rows="5"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="bibliografia">Bibliografía</label>
+            <textarea id="bibliografia" name="bibliografia" rows="4"></textarea>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="imagen_obra">Imagen de la obra</label>
+                <input type="file" id="imagen_obra" name="imagen_obra" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label for="imagen_ficha">Imagen de la ficha o página</label>
+                <input type="file" id="imagen_ficha" name="imagen_ficha" accept="image/*">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notas">Notas internas</label>
+            <textarea id="notas" name="notas" rows="4"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button class="button" type="button" disabled>Guardar próximamente</button>
+            <a class="button secondary" href="{{ url_for('panel') }}">Volver al panel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

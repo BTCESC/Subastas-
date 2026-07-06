@@ -295,6 +295,14 @@ def logout():
     return redirect(url_for("index"))
 
 
+
+@app.route("/libros/nueva")
+@login_required
+def nueva_obra_libro():
+    form_data = {"estado": "publicada"}
+    return render_template("nueva_obra_libro.html", form_data=form_data)
+
+
 @app.route("/obras/nueva", methods=["GET", "POST"])
 @login_required
 def nueva_obra():
