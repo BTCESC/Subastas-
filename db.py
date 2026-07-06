@@ -106,10 +106,16 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
                     enlace_original,
                     imagen_obra,
                     imagen_ficha,
+                    tipo_origen,
+                    libro_titulo,
+                    libro_pagina,
+                    anio_obra,
+                    descripcion,
+                    bibliografia,
                     notas,
                     estado
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id;
                 """,
                 (
@@ -126,6 +132,12 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
                     datos_obra.get("enlace_original"),
                     datos_obra.get("imagen_obra"),
                     datos_obra.get("imagen_ficha"),
+                    datos_obra.get("tipo_origen", "subasta"),
+                    datos_obra.get("libro_titulo"),
+                    datos_obra.get("libro_pagina"),
+                    datos_obra.get("anio_obra"),
+                    datos_obra.get("descripcion"),
+                    datos_obra.get("bibliografia"),
                     datos_obra.get("notas"),
                     datos_obra.get("estado", "publicada"),
                 ),

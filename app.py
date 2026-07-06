@@ -125,6 +125,28 @@ def obtener_datos_obra_desde_formulario():
     }
 
 
+
+def obtener_datos_obra_libro_desde_formulario():
+    estado = request.form.get("estado", "publicada")
+    if estado not in {"borrador", "publicada"}:
+        estado = "publicada"
+
+    return {
+        "tipo_origen": "libro",
+        "autor": limpiar_texto(request.form.get("autor")),
+        "titulo": limpiar_texto(request.form.get("titulo")),
+        "tecnica": limpiar_texto(request.form.get("tecnica")),
+        "medidas": limpiar_texto(request.form.get("medidas")),
+        "libro_titulo": limpiar_texto(request.form.get("libro_titulo")),
+        "libro_pagina": limpiar_texto(request.form.get("libro_pagina")),
+        "anio_obra": limpiar_texto(request.form.get("anio_obra")),
+        "descripcion": limpiar_texto(request.form.get("descripcion")),
+        "bibliografia": limpiar_texto(request.form.get("bibliografia")),
+        "notas": limpiar_texto(request.form.get("notas")),
+        "estado": estado,
+    }
+
+
 def preparar_form_data_desde_obra(obra):
     return {
         "autor": obra["autor"],
@@ -296,10 +318,34 @@ def logout():
 
 
 
-@app.route("/libros/nueva")
+@app.route("/libros/nueva", methods=["GET", "POST"])
 @login_required
 def nueva_obra_libro():
     form_data = {"estado": "publicada"}
+
+    if request.method == "POST":
+        form_data = request.form
+
+        try:
+            datos_obra = obtener_datos_obra_libro_desde_formulario()
+
+            if not datos_obra["autor"] or not datos_obra["titulo"]:
+                flash("Autor y título son obligatorios, incluso si la obra queda como borrador.")
+                return render_template("nueva_obra_libro.html", form_data=form_data)
+
+            datos_obra["imagen_obra"] = guardar_imagen_subida(request.files.get("imagen_obra"), "obra_libro")
+            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha_libro")
+
+            insertar_obra_con_autor(datos_obra, creado_por=session.get("usuario_id"))
+
+            flash("Obra de libro o catálogo guardada correctamente. Puedes añadir otra.")
+            return redirect(url_for("nueva_obra_libro"))
+
+        except ValueError as error:
+            flash(str(error))
+        except Exception:
+            flash("No se pudo guardar la obra de libro/catálogo. Revisa los datos e inténtalo de nuevo.")
+
     return render_template("nueva_obra_libro.html", form_data=form_data)
 
 
