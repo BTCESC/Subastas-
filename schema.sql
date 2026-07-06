@@ -76,7 +76,8 @@ CREATE TABLE IF NOT EXISTS obras (
     CONSTRAINT chk_obras_alto_positivo CHECK (alto_cm IS NULL OR alto_cm > 0),
     CONSTRAINT chk_obras_ancho_positivo CHECK (ancho_cm IS NULL OR ancho_cm > 0),
     CONSTRAINT chk_obras_precio_salida_positivo CHECK (precio_salida IS NULL OR precio_salida >= 0),
-    CONSTRAINT chk_obras_comision_positiva CHECK (comision_porcentaje IS NULL OR comision_porcentaje >= 0)
+    CONSTRAINT chk_obras_comision_positiva CHECK (comision_porcentaje IS NULL OR comision_porcentaje >= 0),
+    CONSTRAINT chk_obras_tipo_origen_valido CHECK (tipo_origen IN ('subasta', 'libro', 'museo', 'galeria'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_obras_autor_id ON obras(autor_id);
