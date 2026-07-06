@@ -79,7 +79,11 @@
             <dl class="obra-meta">
                 <div>
                     <dt>Autor</dt>
-                    <dd>{{ obra.autor }}</dd>
+                    <dd>{% if obra.autor_id %}
+                        <a href="{{ url_for('detalle_autor', autor_id=obra.autor_id) }}">{{ obra.autor }}</a>
+                    {% else %}
+                        {{ obra.autor }}
+                    {% endif %}</dd>
                 </div>
 
                 {% if obra.tecnica %}

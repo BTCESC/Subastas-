@@ -6,7 +6,11 @@
 <section class="page-header">
     <p class="eyebrow">Ficha de obra</p>
     <h1>{{ obra.titulo }}</h1>
-    <p>{{ obra.autor }}</p>
+    <p>{% if obra.autor_id %}
+                        <a href="{{ url_for('detalle_autor', autor_id=obra.autor_id) }}">{{ obra.autor }}</a>
+                    {% else %}
+                        {{ obra.autor }}
+                    {% endif %}</p>
 
     <div class="section-actions">
         <a class="button secondary" href="{{ url_for('coleccion') }}">Volver a colección</a>
@@ -57,7 +61,11 @@
         <dl class="obra-meta detail-meta">
             <div>
                 <dt>Autor</dt>
-                <dd>{{ obra.autor }}</dd>
+                <dd>{% if obra.autor_id %}
+                        <a href="{{ url_for('detalle_autor', autor_id=obra.autor_id) }}">{{ obra.autor }}</a>
+                    {% else %}
+                        {{ obra.autor }}
+                    {% endif %}</dd>
             </div>
 
             <div>

@@ -30,7 +30,7 @@
         <tbody>
             {% for autor in autores %}
                 <tr>
-                    <td>{{ autor.nombre_principal }}</td>
+                    <td><a href="{{ url_for('detalle_autor', autor_id=autor.id) }}">{{ autor.nombre_principal }}</a></td>
                     <td>{{ autor.total_obras }}</td>
                     <td>{{ autor.notas or "—" }}</td>
                 </tr>
