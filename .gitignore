@@ -6,3 +6,5 @@ static/uploads/*
 !static/uploads/.gitkeep
 imports/
 backups/
+
+private_uploads/

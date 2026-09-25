@@ -42,6 +42,36 @@ Reglas:
 """
 
 
+PROMPT_ANALISIS_LIBRO = """
+Analiza esta imagen de una página, ficha o texto de un libro/catálogo de arte.
+
+Extrae solo los datos que aparezcan claramente.
+No inventes datos.
+
+Devuelve únicamente un JSON válido con esta estructura exacta:
+
+{
+  "autor": "",
+  "titulo": "",
+  "anio_obra": "",
+  "tecnica": "",
+  "medidas": "",
+  "descripcion": "",
+  "bibliografia": "",
+  "libro_titulo": "",
+  "libro_pagina": ""
+}
+
+Reglas:
+- Si no encuentras un dato, deja el valor como cadena vacía.
+- anio_obra puede ser un año aproximado solo si aparece claramente.
+- descripcion debe recoger el texto descriptivo de la obra si aparece.
+- bibliografia debe recoger referencias bibliográficas si aparecen.
+- No añadas explicaciones.
+- No añadas texto fuera del JSON.
+"""
+
+
 def limpiar_json_respuesta(texto):
     texto = texto.strip()
 
@@ -106,4 +136,55 @@ def analizar_ficha_con_gemini(ruta_imagen):
         "precio_salida": str(datos.get("precio_salida", "") or "").strip(),
         "casa_subastas": str(datos.get("casa_subastas", "") or "").strip(),
         "fecha_subasta": str(datos.get("fecha_subasta", "") or "").strip(),
+    }
+
+def analizar_libro_con_gemini(ruta_imagen):
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        raise RuntimeError("Falta GEMINI_API_KEY en el archivo .env.")
+
+    ruta_imagen = Path(ruta_imagen)
+
+    if not ruta_imagen.exists():
+        raise RuntimeError("No se encontró la imagen de la ficha del libro.")
+
+    mime_type, _ = mimetypes.guess_type(ruta_imagen)
+    if not mime_type:
+        mime_type = "image/jpeg"
+
+    client = genai.Client(api_key=api_key)
+
+    response = client.models.generate_content(
+        model=os.getenv("GEMINI_MODEL", "gemini-3-flash-preview"),
+        contents=[
+            types.Part.from_bytes(
+                data=ruta_imagen.read_bytes(),
+                mime_type=mime_type,
+            ),
+            PROMPT_ANALISIS_LIBRO,
+        ],
+        config=types.GenerateContentConfig(
+            temperature=0.0,
+            response_mime_type="application/json",
+        ),
+    )
+
+    texto = limpiar_json_respuesta(response.text or "")
+
+    try:
+        datos = json.loads(texto)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("Gemini no devolvió un JSON válido.") from error
+
+    return {
+        "autor": str(datos.get("autor", "") or "").strip(),
+        "titulo": str(datos.get("titulo", "") or "").strip(),
+        "anio_obra": str(datos.get("anio_obra", "") or "").strip(),
+        "tecnica": str(datos.get("tecnica", "") or "").strip(),
+        "medidas": str(datos.get("medidas", "") or "").strip(),
+        "descripcion": str(datos.get("descripcion", "") or "").strip(),
+        "bibliografia": str(datos.get("bibliografia", "") or "").strip(),
+        "libro_titulo": str(datos.get("libro_titulo", "") or "").strip(),
+        "libro_pagina": str(datos.get("libro_pagina", "") or "").strip(),
     }

@@ -241,6 +241,11 @@ def obtener_obra_por_id(obra_id):
                     obras.notas,
                     obras.estado,
                     obras.tipo_origen,
+                    obras.libro_titulo,
+                    obras.libro_pagina,
+                    obras.anio_obra,
+                    obras.descripcion,
+                    obras.bibliografia,
                     autores.nombre_principal AS autor
                 FROM obras
                 JOIN autores ON autores.id = obras.autor_id

@@ -4,11 +4,11 @@ from pathlib import Path
 from uuid import uuid4
 import os
 
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 
-from ai import analizar_ficha_con_gemini
+from ai import analizar_ficha_con_gemini, analizar_libro_con_gemini
 from db import (
     cambiar_estado_obra,
     actualizar_obra,
@@ -24,13 +24,17 @@ from db import (
 
 
 BASE_DIR = Path(__file__).resolve().parent
+
 UPLOAD_FOLDER = BASE_DIR / "static" / "uploads"
 UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+
+PRIVATE_UPLOAD_FOLDER = BASE_DIR / "private_uploads"
+PRIVATE_UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 EXTENSIONES_IMAGEN_PERMITIDAS = {"jpg", "jpeg", "png", "webp", "gif"}
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
@@ -43,6 +47,18 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
+
+@app.route("/fichas/<nombre_archivo>")
+@login_required
+def ver_ficha_privada(nombre_archivo):
+    ruta_ficha = obtener_ruta_ficha(nombre_archivo)
+
+    if not ruta_ficha:
+        flash("No se encontró la ficha solicitada.")
+        return redirect(url_for("coleccion"))
+
+    return send_from_directory(ruta_ficha.parent, ruta_ficha.name)
 
 
 def limpiar_texto(valor):
@@ -66,7 +82,7 @@ def extension_permitida(nombre_archivo):
     return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_IMAGEN_PERMITIDAS
 
 
-def guardar_imagen_subida(archivo, prefijo):
+def guardar_imagen_subida(archivo, prefijo, carpeta_destino=UPLOAD_FOLDER):
     if not archivo or not archivo.filename:
         return None
 
@@ -77,11 +93,26 @@ def guardar_imagen_subida(archivo, prefijo):
 
     extension = nombre_original.rsplit(".", 1)[1].lower()
     nombre_final = f"{prefijo}_{uuid4().hex}.{extension}"
-    ruta_destino = UPLOAD_FOLDER / nombre_final
+    ruta_destino = carpeta_destino / nombre_final
 
     archivo.save(ruta_destino)
 
     return nombre_final
+
+
+def obtener_ruta_ficha(nombre_archivo):
+    if not nombre_archivo or Path(nombre_archivo).name != nombre_archivo:
+        return None
+
+    ruta_privada = PRIVATE_UPLOAD_FOLDER / nombre_archivo
+    if ruta_privada.exists() and ruta_privada.is_file():
+        return ruta_privada
+
+    ruta_legacy = UPLOAD_FOLDER / nombre_archivo
+    if ruta_legacy.exists() and ruta_legacy.is_file():
+        return ruta_legacy
+
+    return None
 
 
 def borrar_archivo_subido(nombre_archivo):
@@ -96,6 +127,21 @@ def borrar_archivo_subido(nombre_archivo):
 
     if ruta_archivo.exists() and ruta_archivo.is_file():
         ruta_archivo.unlink()
+
+
+def borrar_ficha_subida(nombre_archivo):
+    if not nombre_archivo or Path(nombre_archivo).name != nombre_archivo:
+        return
+
+    for carpeta in (PRIVATE_UPLOAD_FOLDER, UPLOAD_FOLDER):
+        ruta_archivo = (carpeta / nombre_archivo).resolve()
+        carpeta_resuelta = carpeta.resolve()
+
+        if carpeta_resuelta not in ruta_archivo.parents:
+            continue
+
+        if ruta_archivo.exists() and ruta_archivo.is_file():
+            ruta_archivo.unlink()
 
 
 def obtener_datos_obra_desde_formulario():
@@ -196,6 +242,38 @@ def mezclar_datos_ia_con_formulario(formulario, datos_ia, imagen_obra=None, imag
     return form_data
 
 
+
+def mezclar_datos_ia_libro_con_formulario(formulario, datos_ia, imagen_obra=None, imagen_ficha=None):
+    form_data = dict(formulario)
+
+    campos = [
+        "autor",
+        "titulo",
+        "anio_obra",
+        "tecnica",
+        "medidas",
+        "descripcion",
+        "bibliografia",
+        "libro_titulo",
+        "libro_pagina",
+    ]
+
+    for campo in campos:
+        valor_actual = (form_data.get(campo) or "").strip()
+        valor_ia = (datos_ia.get(campo) or "").strip()
+
+        if not valor_actual and valor_ia:
+            form_data[campo] = valor_ia
+
+    if imagen_obra:
+        form_data["imagen_obra_existente"] = imagen_obra
+
+    if imagen_ficha:
+        form_data["imagen_ficha_existente"] = imagen_ficha
+
+    return form_data
+
+
 def recordar_datos_recurrentes(formulario):
     casa_subastas = limpiar_texto(formulario.get("casa_subastas"))
     comision = limpiar_texto(formulario.get("comision"))
@@ -205,6 +283,21 @@ def recordar_datos_recurrentes(formulario):
 
     if comision:
         session["comision_default"] = comision
+
+
+
+def recordar_datos_recurrentes_libro(formulario):
+    libro_titulo = limpiar_texto(formulario.get("libro_titulo"))
+
+    if libro_titulo:
+        session["libro_titulo_default"] = libro_titulo
+
+
+def form_data_libro_con_datos_recurrentes():
+    return {
+        "libro_titulo": session.get("libro_titulo_default", ""),
+        "estado": "publicada",
+    }
 
 
 def form_data_con_datos_recurrentes():
@@ -235,6 +328,9 @@ def detalle_autor(autor_id):
         return redirect(url_for("autores"))
 
     obras = listar_obras_por_autor(autor_id)
+
+    if not session.get("usuario_id"):
+        obras = [obra for obra in obras if obra["estado"] == "publicada"]
 
     return render_template(
         "autor_detalle.html",
@@ -276,7 +372,7 @@ def coleccion():
 def detalle_obra(obra_id):
     obra = obtener_obra_por_id(obra_id)
 
-    if not obra:
+    if not obra or (obra["estado"] != "publicada" and not session.get("usuario_id")):
         flash("No se encontró la obra solicitada.")
         return redirect(url_for("coleccion"))
 
@@ -321,20 +417,53 @@ def logout():
 @app.route("/libros/nueva", methods=["GET", "POST"])
 @login_required
 def nueva_obra_libro():
-    form_data = {"estado": "publicada"}
+    form_data = form_data_libro_con_datos_recurrentes()
 
     if request.method == "POST":
         form_data = request.form
+        accion = request.form.get("accion", "guardar")
+        recordar_datos_recurrentes_libro(request.form)
 
         try:
+            if accion == "analizar_ia":
+                imagen_obra_existente = limpiar_texto(request.form.get("imagen_obra_existente"))
+                imagen_ficha_existente = limpiar_texto(request.form.get("imagen_ficha_existente"))
+
+                nueva_imagen_obra = guardar_imagen_subida(request.files.get("imagen_obra"), "obra_libro")
+                nueva_imagen_ficha = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha_libro", PRIVATE_UPLOAD_FOLDER)
+
+                imagen_obra = nueva_imagen_obra or imagen_obra_existente
+                imagen_ficha = nueva_imagen_ficha or imagen_ficha_existente
+
+                if not imagen_ficha:
+                    flash("Sube una imagen de la ficha o página antes de usar la IA.")
+                    return render_template("nueva_obra_libro.html", form_data=form_data)
+
+                ruta_ficha = obtener_ruta_ficha(imagen_ficha)
+                if not ruta_ficha:
+                    raise RuntimeError("No se encontró la imagen de la ficha.")
+                datos_ia = analizar_libro_con_gemini(ruta_ficha)
+                form_data = mezclar_datos_ia_libro_con_formulario(
+                    request.form,
+                    datos_ia,
+                    imagen_obra=imagen_obra,
+                    imagen_ficha=imagen_ficha,
+                )
+
+                flash("Ficha de libro analizada con IA. Revisa los datos antes de guardar.")
+                return render_template("nueva_obra_libro.html", form_data=form_data)
+
             datos_obra = obtener_datos_obra_libro_desde_formulario()
 
             if not datos_obra["autor"] or not datos_obra["titulo"]:
                 flash("Autor y título son obligatorios, incluso si la obra queda como borrador.")
                 return render_template("nueva_obra_libro.html", form_data=form_data)
 
-            datos_obra["imagen_obra"] = guardar_imagen_subida(request.files.get("imagen_obra"), "obra_libro")
-            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha_libro")
+            imagen_obra_existente = limpiar_texto(request.form.get("imagen_obra_existente"))
+            imagen_ficha_existente = limpiar_texto(request.form.get("imagen_ficha_existente"))
+
+            datos_obra["imagen_obra"] = guardar_imagen_subida(request.files.get("imagen_obra"), "obra_libro") or imagen_obra_existente
+            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha_libro", PRIVATE_UPLOAD_FOLDER) or imagen_ficha_existente
 
             insertar_obra_con_autor(datos_obra, creado_por=session.get("usuario_id"))
 
@@ -343,8 +472,15 @@ def nueva_obra_libro():
 
         except ValueError as error:
             flash(str(error))
-        except Exception:
-            flash("No se pudo guardar la obra de libro/catálogo. Revisa los datos e inténtalo de nuevo.")
+        except Exception as error:
+            error_texto = str(error)
+
+            if "RESOURCE_EXHAUSTED" in error_texto or "429" in error_texto:
+                flash("La IA está temporalmente limitada. Espera un minuto y vuelve a intentarlo.")
+            elif "API key" in error_texto or "GEMINI_API_KEY" in error_texto:
+                flash("No se ha podido usar la IA porque falta o no es válida la clave de Gemini.")
+            else:
+                flash("No se pudo procesar la ficha del libro con IA. Revisa la imagen e inténtalo de nuevo.")
 
     return render_template("nueva_obra_libro.html", form_data=form_data)
 
@@ -365,7 +501,7 @@ def nueva_obra():
                 imagen_ficha_existente = limpiar_texto(request.form.get("imagen_ficha_existente"))
 
                 nueva_imagen_obra = guardar_imagen_subida(request.files.get("imagen_obra"), "obra")
-                nueva_imagen_ficha = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha")
+                nueva_imagen_ficha = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha", PRIVATE_UPLOAD_FOLDER)
 
                 imagen_obra = nueva_imagen_obra or imagen_obra_existente
                 imagen_ficha = nueva_imagen_ficha or imagen_ficha_existente
@@ -374,7 +510,10 @@ def nueva_obra():
                     flash("Sube una imagen de la ficha antes de usar la IA.")
                     return render_template("nueva_obra.html", form_data=form_data)
 
-                datos_ia = analizar_ficha_con_gemini(UPLOAD_FOLDER / imagen_ficha)
+                ruta_ficha = obtener_ruta_ficha(imagen_ficha)
+                if not ruta_ficha:
+                    raise RuntimeError("No se encontró la imagen de la ficha.")
+                datos_ia = analizar_ficha_con_gemini(ruta_ficha)
                 form_data = mezclar_datos_ia_con_formulario(
                     request.form,
                     datos_ia,
@@ -395,7 +534,7 @@ def nueva_obra():
             imagen_ficha_existente = limpiar_texto(request.form.get("imagen_ficha_existente"))
 
             datos_obra["imagen_obra"] = guardar_imagen_subida(request.files.get("imagen_obra"), "obra") or imagen_obra_existente
-            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha") or imagen_ficha_existente
+            datos_obra["imagen_ficha"] = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha", PRIVATE_UPLOAD_FOLDER) or imagen_ficha_existente
 
             insertar_obra_con_autor(datos_obra, creado_por=session.get("usuario_id"))
             flash("Obra guardada correctamente. Puedes añadir otra obra de la misma subasta.")
@@ -438,7 +577,7 @@ def editar_obra(obra_id):
                 return render_template("editar_obra.html", obra=obra, form_data=form_data)
 
             nueva_imagen_obra = guardar_imagen_subida(request.files.get("imagen_obra"), "obra")
-            nueva_imagen_ficha = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha")
+            nueva_imagen_ficha = guardar_imagen_subida(request.files.get("imagen_ficha"), "ficha", PRIVATE_UPLOAD_FOLDER)
 
             datos_obra["imagen_obra"] = nueva_imagen_obra or obra["imagen_obra"]
             datos_obra["imagen_ficha"] = nueva_imagen_ficha or obra["imagen_ficha"]
@@ -479,7 +618,7 @@ def borrar_obra_route(obra_id):
 
     if obra_borrada:
         borrar_archivo_subido(obra_borrada.get("imagen_obra"))
-        borrar_archivo_subido(obra_borrada.get("imagen_ficha"))
+        borrar_ficha_subida(obra_borrada.get("imagen_ficha"))
         flash("Obra borrada correctamente.")
     else:
         flash("No se encontró la obra solicitada.")

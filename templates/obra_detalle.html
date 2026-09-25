@@ -38,17 +38,31 @@
             </div>
         {% endif %}
 
-        {% if obra.notas %}
+        {% if obra.tipo_origen == "libro" and obra.descripcion %}
+            <section class="detail-section descripcion-libro-ficha">
+                <p class="eyebrow">Descripción del libro</p>
+                <p>{{ obra.descripcion }}</p>
+            </section>
+        {% endif %}
+
+        {% if obra.tipo_origen == "libro" and obra.bibliografia %}
+            <section class="detail-section">
+                <p class="eyebrow">Bibliografía</p>
+                <p>{{ obra.bibliografia }}</p>
+            </section>
+        {% endif %}
+
+        {% if session.get('usuario_id') and obra.notas %}
             <section class="detail-section">
                 <h2>Notas</h2>
                 <p>{{ obra.notas }}</p>
             </section>
         {% endif %}
 
-        {% if obra.imagen_ficha %}
+        {% if session.get('usuario_id') and obra.imagen_ficha %}
             <section class="detail-section">
                 <h2>Ficha de subasta</h2>
-                <img class="detail-file-image" src="{{ url_for('static', filename='uploads/' ~ obra.imagen_ficha) }}" alt="Ficha de subasta de {{ obra.titulo }}">
+                <img class="detail-file-image" src="{{ url_for('ver_ficha_privada', nombre_archivo=obra.imagen_ficha) }}" alt="Ficha de subasta de {{ obra.titulo }}">
             </section>
         {% endif %}
     </article>
