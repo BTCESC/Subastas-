@@ -15,6 +15,7 @@ from db import (
     borrar_obra,
     insertar_obra_con_autor,
     listar_autores,
+    listar_libros,
     obtener_autor_por_id,
     listar_obras_por_autor,
     listar_obras,
@@ -350,6 +351,7 @@ def autores():
 def coleccion():
     busqueda = request.args.get("q", "").strip()
     estado_filtro = request.args.get("estado", "").strip()
+    libro_filtro = request.args.get("libro", "").strip()
     sin_titulo = request.args.get("sin_titulo") == "1"
 
     if session.get("usuario_id"):
@@ -358,12 +360,16 @@ def coleccion():
     else:
         estado_filtro = "publicada"
 
-    obras = listar_obras(busqueda, estado_filtro, sin_titulo)
+    obras = listar_obras(busqueda, estado_filtro, sin_titulo, libro_filtro)
+    libros = listar_libros(estado_filtro)
+
     return render_template(
         "coleccion.html",
         obras=obras,
+        libros=libros,
         q=busqueda,
         estado_filtro=estado_filtro,
+        libro_filtro=libro_filtro,
         sin_titulo=sin_titulo,
     )
 

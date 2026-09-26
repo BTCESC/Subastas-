@@ -150,9 +150,10 @@ def insertar_obra_con_autor(datos_obra, creado_por=None):
     return obra_id
 
 
-def listar_obras(busqueda=None, estado=None, sin_titulo=False):
+def listar_obras(busqueda=None, estado=None, sin_titulo=False, libro=None):
     busqueda = (busqueda or "").strip()
     estado = (estado or "").strip()
+    libro = (libro or "").strip()
 
     if estado not in {"publicada", "borrador"}:
         estado = None
@@ -176,6 +177,10 @@ def listar_obras(busqueda=None, estado=None, sin_titulo=False):
             if estado:
                 condiciones.append("obras.estado = %s")
                 parametros.append(estado)
+
+            if libro:
+                condiciones.append("TRIM(obras.libro_titulo) = %s")
+                parametros.append(libro)
 
             if sin_titulo:
                 condiciones.append("""
@@ -217,6 +222,37 @@ def listar_obras(busqueda=None, estado=None, sin_titulo=False):
                 parametros,
             )
             return cur.fetchall()
+
+
+def listar_libros(estado=None):
+    estado = (estado or "").strip()
+
+    if estado not in {"publicada", "borrador"}:
+        estado = None
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            parametros = []
+            where_sql = """
+                WHERE obras.libro_titulo IS NOT NULL
+                  AND TRIM(obras.libro_titulo) <> ''
+            """
+
+            if estado:
+                where_sql += " AND obras.estado = %s"
+                parametros.append(estado)
+
+            cur.execute(
+                f"""
+                SELECT DISTINCT TRIM(obras.libro_titulo) AS libro_titulo
+                FROM obras
+                {where_sql}
+                ORDER BY libro_titulo;
+                """,
+                parametros,
+            )
+
+            return [fila["libro_titulo"] for fila in cur.fetchall()]
 
 
 def obtener_obra_por_id(obra_id):
